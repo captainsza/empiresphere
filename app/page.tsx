@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-undef */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -18,6 +19,7 @@ import {
   File as DefaultFileIcon,
   FileText
 } from 'lucide-react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { toast, Toaster } from 'sonner';
@@ -271,9 +273,44 @@ const DashboardPage: React.FC = () => {
         transition={{ duration: 0.8 }}
         className="flex justify-between items-center"
       >
-        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-          EmpireSphere Dashboard
-        </h1>
+        <div className="flex items-center space-x-4">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 260,
+              damping: 20 
+            }}
+            whileHover={{ 
+              scale: 1.1,
+              rotate: 5 
+            }}
+            className="relative"
+          >
+            <Image
+              src="/logo-removebg-preview.png" // Add your logo file
+              alt="EmpireSphere Logo"
+              width={70}
+              height={70}
+              className="rounded-lg"
+            />
+            <motion.div
+              className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-purple-600 rounded-lg opacity-75 blur-sm -z-10"
+              animate={{
+                scale: [1, 1.1, 1],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse"
+              }}
+            />
+          </motion.div>
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+            EmpireSphere Dashboard
+          </h1>
+        </div>
         <div className="flex items-center space-x-4">
           <Shield className="text-blue-400" />
           <span>{session.user.username}</span>
