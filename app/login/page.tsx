@@ -18,30 +18,52 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Add more comprehensive error handling
+      if (!username || !password) {
+        toast.error('Please enter both username and password');
+        setIsLoading(false);
+        return;
+      }
+
       const result = await signIn('credentials', {
         redirect: false,
         username,
         password
       });
 
+      // More detailed error checking
       if (result?.error) {
-        // Handle login error
-        toast.error(result.error || 'Login failed');
-      } else {
+        console.error('Login Error Details:', result.error);
+        
+        // Map specific error messages
+        const errorMessages: { [key: string]: string } = {
+          'User not found': 'No account found with this username',
+          'Invalid password': 'Incorrect password',
+          'Missing credentials': 'Please provide both username and password'
+        };
+
+        const errorMessage = errorMessages[result.error] || 
+          result.error || 
+          'Login failed. Please try again.';
+
+        toast.error(errorMessage);
+      } else if (result?.ok) {
         // Successful login
         toast.success('Login Successful!');
         // Redirect to dashboard or home page
-        router.push('/');
+        router.push('/'); // Consider using a more specific route
+      } else {
+        // Unexpected result
+        toast.error('An unexpected error occurred during login');
       }
     } catch (error) {
-      // Network or unexpected error
-      toast.error('An unexpected error occurred');
-      console.error('Login error:', error);
+      // Catch any network or unexpected errors
+      console.error('Comprehensive Login Error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 flex items-center justify-center p-4 relative overflow-hidden">
 
