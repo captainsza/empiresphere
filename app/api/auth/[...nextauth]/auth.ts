@@ -1,4 +1,4 @@
-//api/auth/[...nextauth]/route.ts
+//api/auth/[...nextauth]/auth.ts
 import NextAuth, { NextAuthOptions, DefaultSession } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { PrismaClient } from '@prisma/client'
