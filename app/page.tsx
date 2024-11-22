@@ -291,8 +291,8 @@ const DashboardPage: React.FC = () => {
             <Image
               src="/logo-removebg-preview.png" // Add your logo file
               alt="EmpireSphere Logo"
-              width={70}
-              height={70}
+              width={120}
+              height={120}
               className="rounded-lg"
             />
             <motion.div
