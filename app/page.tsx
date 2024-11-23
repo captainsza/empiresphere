@@ -1,15 +1,15 @@
-/* eslint-disable react/jsx-no-undef */
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// src/pages/dashboard.tsx
+// or
+// src/app/dashboard/page.tsx
+
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { 
   CloudUpload, 
-  Key, 
   Copy, 
-  Sparkles, 
   Shield, 
   RefreshCw, 
   Folder, 
@@ -17,10 +17,12 @@ import {
   Trash2,
   Image as ImageIcon,
   File as DefaultFileIcon,
-  FileText
+  FileText,
+  Share2,
+  X
 } from 'lucide-react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { toast, Toaster } from 'sonner';
 import axios from 'axios';
@@ -28,8 +30,8 @@ import { FaFileWord } from "react-icons/fa";
 import { useRouter } from 'next/navigation';
 import ApiKeysSection from '@/components/ApiKeysSection';
 import DocumentationSection from '@/components/DocumentationSection';
- // Import the ApiKeysSection component
 
+// Define the FileItem interface
 interface FileItem {
   createdAt: string | number | Date;
   id: string;
@@ -38,6 +40,40 @@ interface FileItem {
   type: string;
   folder?: string;
 }
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const FRONTEND_BASE_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || window.location.origin;
+const ensureApiUrl = (url: string): string => {
+  const cleanUrl = url.replace(/\/+$/, '');
+  if (cleanUrl.includes('/api/')) {
+    return cleanUrl;
+  }
+  if (cleanUrl.endsWith('/api')) {
+    return `${cleanUrl}/`;
+  }
+  return cleanUrl.replace(/(https?:\/\/[^\/]+)\/?(.*)/, '$1/api/$2');
+};
+
+// Helper function to generate share URL with proper format
+const generateShareUrl = (token: string): string => {
+  return `${FRONTEND_BASE_URL}/api/share/${token}`;
+};
+
+const generatePreviewUrl = (fileId: string): string => {
+  if (!API_BASE_URL) return '';
+  const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  // Using /view endpoint instead of /preview since that's what was defined in the original code
+  return `${ensureApiUrl(baseUrl)}/files/${fileId}/view`;
+};
+
+const generateFileViewUrl = (fileId: string): string => {
+  const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  return `${baseUrl}/api/files/${fileId}/view`;
+};
+// Helper function to generate file download URL with proper format
+const generateFileDownloadUrl = (fileId: string): string => {
+  const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  return `${baseUrl}/api/files/${fileId}/download`;
+};
 
 const FileTypeIcon: React.FC<{ fileType: string }> = ({ fileType }) => {
   const iconProps = { size: 24, className: "text-blue-400" };
@@ -58,6 +94,7 @@ const FileTypeIcon: React.FC<{ fileType: string }> = ({ fileType }) => {
   }
 };
 
+// DashboardPage Component
 const DashboardPage: React.FC = () => {
   const { data: session, status } = useSession();
   const [apiKeys, setApiKeys] = useState<{ key: string, createdAt: string }[]>([]);
@@ -67,10 +104,18 @@ const DashboardPage: React.FC = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('default');
 
-  // Access the API base URL from environment variables
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+  // State variables for sharing and file preview
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [fileToShare, setFileToShare] = useState<FileItem | null>(null);
+  const [expiresIn, setExpiresIn] = useState(24); // Default expiration time in hours
+  const [shareLink, setShareLink] = useState('');
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [fileToPreview, setFileToPreview] = useState<FileItem | null>(null);
 
   const router = useRouter();
+
+  // Access the API base URL from environment variables
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
   // Fetch API keys
   const fetchApiKeys = async () => {
@@ -120,44 +165,37 @@ const DashboardPage: React.FC = () => {
       setIsGenerating(false);
     }
   };
-
-  // Copy text to clipboard
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to Clipboard', {
-      description: 'API key is now in your clipboard'
+      description: 'Text is now in your clipboard'
     });
   };
-
-  // Fetch user files
+  // Copy text to clipboard
   const fetchFiles = async () => {
     if (!session?.user?.id) return;
 
     try {
       setIsLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/files`, {
+      const fetchUrl = ensureApiUrl(`${API_BASE_URL}/files`);
+      const response = await axios.get(fetchUrl, {
         headers: { 
           'x-user-id': session.user.id 
         }
       });
-      setFiles(response.data);
+
+      setFiles(response.data.files || response.data);
     } catch (error: any) {
-      console.error(error);
-      if (error.response && error.response.status === 401) {
-        toast.error('Unauthorized', {
-          description: 'Please log in to access your files.'
-        });
-      } else {
-        toast.error('Failed to fetch files', {
-          description: 'Could not retrieve your files'
-        });
-      }
+      console.error('File fetch error:', error);
+      toast.error('Failed to fetch files', {
+        description: error.response?.data?.error || 'Could not retrieve your files'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle file upload
+  // Modified file upload function with consistent API URL
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFiles = event.target.files;
     if (!uploadedFiles) return;
@@ -168,7 +206,8 @@ const DashboardPage: React.FC = () => {
     });
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
+      const uploadUrl = ensureApiUrl(`${API_BASE_URL}/upload`);
+      const response = await axios.post(uploadUrl, formData, {
         headers: { 
           'Content-Type': 'multipart/form-data',
           'x-user-id': session?.user?.id,
@@ -179,55 +218,187 @@ const DashboardPage: React.FC = () => {
       toast.success('Files Uploaded', {
         description: `${uploadedFiles.length} file(s) uploaded successfully`
       });
-
-      // Refresh files list
       fetchFiles();
     } catch (error: any) {
-      console.error(error);
-      if (error.response && error.response.data && error.response.data.error) {
-        toast.error('Upload Failed', {
-          description: error.response.data.error
-        });
-      } else {
-        toast.error('Upload Failed', {
-          description: 'Could not upload files'
-        });
-      }
+      console.error('Upload error:', error);
+      toast.error('Upload Failed', {
+        description: error.response?.data?.error || 'Could not upload files'
+      });
     }
   };
 
-  // Delete file
+  // Modified delete file function with consistent API URL
   const handleDeleteFile = async (fileId: string) => {
     try {
-      await axios.delete(`${API_BASE_URL}/files/${fileId}`, {
+      const deleteUrl = ensureApiUrl(`${API_BASE_URL}/files/${fileId}`);
+      await axios.delete(deleteUrl, {
         headers: { 'x-user-id': session?.user?.id }
       });
 
       toast.success('File Deleted', {
         description: 'File removed successfully'
       });
-
-      // Refresh files list
       fetchFiles();
     } catch (error: any) {
-      console.error(error);
-      if (error.response && error.response.data && error.response.data.error) {
-        toast.error('Deletion Failed', {
-          description: error.response.data.error
-        });
-      } else {
-        toast.error('Deletion Failed', {
-          description: 'Could not delete file'
-        });
-      }
+      console.error('Delete error:', error);
+      toast.error('Deletion Failed', {
+        description: error.response?.data?.error || 'Could not delete file'
+      });
     }
   };
 
-  // View file
-  const handleViewFile = (filePath: string) => {
-    // Assuming uploads are served at `${API_BASE_URL.replace('/api', '')}/uploads/${filePath}`
-    const uploadsBaseUrl = API_BASE_URL.replace('/api', '');
-    window.open(`${uploadsBaseUrl}/uploads/${filePath}`, '_blank');
+  // Modified share link generation with consistent API URL
+  const generateShareLink = async () => {
+    if (!fileToShare) return;
+    
+    try {
+      const shareUrl = ensureApiUrl(`${API_BASE_URL}/files/${fileToShare.id}/share`);
+      const response = await axios.post(
+        shareUrl,
+        { expiresIn },
+        {
+          headers: {
+            'x-user-id': session?.user?.id
+          }
+        }
+      );
+      
+      // Extract token and generate proper share URL
+      const shareToken = response.data.shareUrl.split('/').pop();
+      const frontendShareUrl = generateShareUrl(shareToken);
+      setShareLink(frontendShareUrl);
+      
+      toast.success('Share link generated successfully');
+    } catch (error: any) {
+      console.error('Share link generation error:', error);
+      toast.error(error.response?.data?.error || 'Failed to generate share link');
+    }
+  };
+
+  const handleViewFile = async (file: FileItem) => {
+    try {
+      setFileToPreview(file);
+      setPreviewModalOpen(true);
+      
+      // Optional: Verify file accessibility
+      const previewUrl = generatePreviewUrl(file.id);
+      const response = await fetch(previewUrl, {
+        method: 'HEAD',
+        headers: {
+          'x-user-id': session?.user?.id || '',
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error: any) {
+      console.error('Preview error:', error);
+      toast.error('Preview Failed', {
+        description: error.message || 'Unable to preview this file'
+      });
+      // Don't close the modal immediately, let user see the fallback view
+    }
+  };
+
+  // Modified renderFilePreview function with better error handling
+  const renderFilePreview = (file: FileItem) => {
+    const previewUrl = generatePreviewUrl(file.id);
+    
+    if (!previewUrl) {
+      return (
+        <div className="text-center p-8">
+          <p className="text-red-400">Error: Unable to generate preview URL</p>
+        </div>
+      );
+    }
+
+    const handlePreviewError = (message: string) => {
+      toast.error('Preview Error', {
+        description: message
+      });
+    };
+
+    // Handle image files
+    if (file.type.startsWith('image/')) {
+      return (
+        <div className="max-w-full max-h-full overflow-auto p-4">
+          <img 
+            src={previewUrl}
+            alt={file.name}
+            className="max-w-full h-auto object-contain rounded-lg"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.onerror = null;
+              handlePreviewError('Failed to load image preview');
+              target.src = '/placeholder-image.png';
+            }}
+          />
+        </div>
+      );
+    }
+
+    // Handle PDF files
+    if (file.type === 'application/pdf') {
+      return (
+        <div className="w-full h-full p-4">
+          <object
+            data={previewUrl}
+            type="application/pdf"
+            className="w-full h-[calc(100vh-200px)] rounded-lg"
+          >
+            <div className="text-center p-8">
+              <p className="text-gray-300 mb-4">PDF preview not available in your browser</p>
+              <a
+                href={previewUrl}
+                download={file.name}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Download PDF
+              </a>
+            </div>
+          </object>
+        </div>
+      );
+    }
+
+    // Handle text files
+    if (file.type.startsWith('text/')) {
+      return (
+        <div className="w-full h-full p-4">
+          <iframe
+            src={previewUrl}
+            title={file.name}
+            className="w-full h-[calc(100vh-200px)] rounded-lg bg-white"
+            sandbox="allow-same-origin allow-scripts"
+            onError={() => handlePreviewError('Failed to load text preview')}
+          />
+        </div>
+      );
+    }
+
+    // Default fallback for unsupported file types
+    return (
+      <div className="text-center p-8">
+        <FileTypeIcon fileType={file.type} />
+        <p className="text-gray-300 my-4">Preview not available for {file.type}</p>
+        <a
+          href={previewUrl}
+          download={file.name}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+        >
+          Download File
+        </a>
+      </div>
+    );
+  };
+
+  // Handle file sharing
+  const handleShareFile = (file: FileItem) => {
+    setFileToShare(file);
+    setExpiresIn(24); // Reset expiration time
+    setShareLink('');
+    setShareModalOpen(true);
   };
 
   // Create new folder
@@ -238,16 +409,18 @@ const DashboardPage: React.FC = () => {
       toast.success('Folder Created', {
         description: `Folder "${newFolderName}" is now active`
       });
+      fetchFiles();
     }
   };
 
+  // Fetch files and API keys when dependencies change
   useEffect(() => {
     if (session?.user?.id) {
       fetchApiKeys();
       fetchFiles();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  }, [session, selectedFolder]);
 
   if (status === 'loading') {
     return (
@@ -258,10 +431,11 @@ const DashboardPage: React.FC = () => {
   }
 
   if (!session) {
-    router.replace('/login'); // or whatever your login page route is
+    router.replace('/login'); // or your login page route
     return null; // Return null while redirecting
   }
 
+ 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a2a] to-[#0a0a1a] text-white p-8 space-y-8">
       <Toaster richColors />
@@ -289,7 +463,7 @@ const DashboardPage: React.FC = () => {
             className="relative"
           >
             <Image
-              src="/logo-removebg-preview.png" // Add your logo file
+              src="/logo-removebg-preview.png" // Ensure this image exists in the public directory
               alt="EmpireSphere Logo"
               width={120}
               height={120}
@@ -387,7 +561,10 @@ const DashboardPage: React.FC = () => {
               <motion.div
                 key={folder}
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setSelectedFolder(folder || 'default')}
+                onClick={() => {
+                  setSelectedFolder(folder || 'default');
+                  fetchFiles();
+                }}
                 className={`px-4 py-2 rounded-lg cursor-pointer transition-all 
                   ${selectedFolder === folder 
                     ? 'bg-blue-700/50' 
@@ -469,11 +646,21 @@ const DashboardPage: React.FC = () => {
                       <motion.button
                         whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleViewFile(file.path)}
+                        onClick={() => handleViewFile(file)}
                         className="text-blue-400 hover:text-blue-600"
                         title="View File"
                       >
                         <FileIcon size={20} />
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleShareFile(file)}
+                        className="text-green-400 hover:text-green-600"
+                        title="Share File"
+                      >
+                        <Share2 size={20} />
                       </motion.button>
                       
                       <motion.button
@@ -494,6 +681,114 @@ const DashboardPage: React.FC = () => {
         )}
       </motion.div>
 
+      {/* Preview Modal */}
+      <AnimatePresence>
+      {previewModalOpen && fileToPreview && (
+        <motion.div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="bg-[#1e1e2e] rounded-lg p-6 w-11/12 h-5/6 md:w-4/5 lg:w-3/4 backdrop-filter backdrop-blur-lg bg-opacity-80 overflow-hidden"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.8 }}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center space-x-3">
+                <FileTypeIcon fileType={fileToPreview.type} />
+                <h3 className="text-xl font-bold text-white truncate">
+                  {fileToPreview.name}
+                </h3>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => {
+                  setPreviewModalOpen(false);
+                  setFileToPreview(null);
+                }}
+                className="text-red-500 hover:text-red-700"
+                title="Close"
+              >
+                <X size={24} />
+              </motion.button>
+            </div>
+            <div className="w-full h-[calc(100%-4rem)] overflow-auto">
+              {renderFilePreview(fileToPreview)}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {shareModalOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-[#1e1e2e] rounded-lg p-6 w-11/12 md:w-2/3 lg:w-1/2 backdrop-filter backdrop-blur-lg bg-opacity-80"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-white">Share File</h3>
+                <motion.button
+                  whileHover={{ scale: 1.2 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShareModalOpen(false)}
+                  className="text-red-500 hover:text-red-700"
+                  title="Close"
+                >
+                  <X size={24} />
+                </motion.button>
+              </div>
+              <div className="space-y-4 text-gray-300">
+                <p>Specify the expiration time (in hours) for the share link:</p>
+                <input
+                  type="number"
+                  value={expiresIn}
+                  onChange={(e) => setExpiresIn(parseInt(e.target.value))}
+                  min={1}
+                  className="bg-[#2a2a3a] px-3 py-2 rounded-lg text-sm placeholder-gray-400 w-full"
+                />
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={generateShareLink}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 
+                    px-4 py-2 rounded-full hover:from-green-700 hover:to-emerald-700 
+                    transition-all w-full"
+                >
+                  Generate Share Link
+                </motion.button>
+                {shareLink && (
+                  <div className="mt-4">
+                    <p className="text-sm text-green-400 break-all">{shareLink}</p>
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      onClick={() => copyToClipboard(shareLink)}
+                      className="text-blue-300 hover:text-blue-500 transition-colors mt-2"
+                      title="Copy Share Link to Clipboard"
+                    >
+                      <Copy size={20} />
+                    </motion.button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* API Keys Section */}
       <ApiKeysSection
         apiKeys={apiKeys}
@@ -501,6 +796,8 @@ const DashboardPage: React.FC = () => {
         generateApiKey={generateApiKey}
         copyToClipboard={copyToClipboard}
       />
+
+      {/* Documentation Section */}
       <DocumentationSection />
     </div>
   );
