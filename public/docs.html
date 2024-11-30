@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmpireSphere API Documentation</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        a {
+            color: #1e90ff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100%;
+            background-color: #2c3e50;
+            padding-top: 60px;
+            overflow-y: auto;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .sidebar h2 {
+            color: #ecf0f1;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 15px;
+        }
+
+        .sidebar ul li a {
+            color: #bdc3c7;
+            font-size: 16px;
+            display: block;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .sidebar ul li a:hover, .sidebar ul li a.active {
+            background-color: #1abc9c;
+            color: #fff;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 250px;
+            padding: 20px 40px;
+            flex: 1;
+            background-color: #fff;
+            overflow-y: auto;
+        }
+
+        /* Responsive Sidebar */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .hamburger {
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+                cursor: pointer;
+                z-index: 1000;
+            }
+
+            .hamburger div {
+                width: 100%;
+                height: 4px;
+                background-color: #2c3e50;
+                border-radius: 2px;
+                transition: all 0.3s ease;
+            }
+        }
+
+        /* Content Styles */
+        h1, h2, h3, h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-top: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 20px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        pre {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background-color: #ecf0f1;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #bdc3c7;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #34495e;
+            color: #fff;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px 0;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hamburger Menu for Mobile -->
+    <div class="hamburger" id="hamburger">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <h2>Contents</h2>
+        <ul>
+            <li><a href="#introduction" class="active">Introduction</a></li>
+            <li><a href="#authentication">Authentication</a></li>
+            <li>
+                <a href="#api-endpoints">API Endpoints</a>
+                <ul>
+                    <li><a href="#1-generate-api-key">1. Generate API Key</a></li>
+                    <li><a href="#2-list-api-keys">2. List API Keys</a></li>
+                    <li><a href="#3-upload-files">3. Upload Files</a></li>
+                    <li><a href="#4-list-files">4. List Files</a></li>
+                    <li><a href="#5-delete-file">5. Delete File</a></li>
+                    <li><a href="#6-share-file">6. Share File</a></li>
+                    <li><a href="#7-access-shared-file">7. Access Shared File</a></li>
+                    <li><a href="#8-view-file">8. View File</a></li>
+                    <li><a href="#9-download-file">9. Download File</a></li>
+                </ul>
+            </li>
+            <li><a href="#error-handling">Error Handling</a></li>
+            <li><a href="#rate-limiting">Rate Limiting</a></li>
+            <li>
+                <a href="#examples">Examples</a>
+                <ul>
+                    <li><a href="#using-curl">Using cURL</a></li>
+                    <li><a href="#using-javascript-axios">Using JavaScript (Axios)</a></li>
+                    <li><a href="#using-python-requests">Using Python (Requests)</a></li>
+                </ul>
+            </li>
+            <li><a href="#best-practices">Best Practices</a></li>
+            <li><a href="#support">Support</a></li>
+            <li><a href="#appendix">Appendix</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Introduction -->
+        <section id="introduction">
+            <h1>EmpireSphere API Documentation</h1>
+            <p>Welcome to the EmpireSphere API documentation. This guide provides all the necessary information to integrate and interact with the EmpireSphere file management system.</p>
+            <h2>Introduction</h2>
+            <p>EmpireSphere offers a robust API for managing files, including uploading, listing, deleting, sharing, and accessing files. This documentation will guide you through using these endpoints effectively.</p>
+            <p><strong>Base URL:</strong> <code>http://103.15.157.253:3003/api</code></p>
+            <p>Ensure that all API requests are directed to the above base URL.</p>
+        </section>
+
+        <!-- Authentication -->
+        <section id="authentication">
+            <h2>Authentication</h2>
+            <p>EmpireSphere uses JWT (JSON Web Tokens) for authentication. Users must obtain an API key and include it in the <code>Authorization</code> header for authenticated requests.</p>
+            <h3>Obtaining an API Key</h3>
+            <ol>
+                <li><strong>Generate an API Key:</strong> Use the <a href="#1-generate-api-key">Generate API Key</a> endpoint to obtain a new API key.</li>
+                <li><strong>Include the API Key in Requests:</strong> Add the API key to the <code>Authorization</code> header in the format:</li>
+            </ol>
+            <pre><code>Authorization: Bearer &lt;your_api_key&gt;</code></pre>
+            <h3>Example</h3>
+            <pre><code>Authorization: Bearer your_api_key_here</code></pre>
+        </section>
+
+        <!-- API Endpoints -->
+        <section id="api-endpoints">
+            <h2>API Endpoints</h2>
+
+            <!-- 1. Generate API Key -->
+            <section id="1-generate-api-key">
+                <h3>1. Generate API Key</h3>
+                <p><strong>Endpoint:</strong> <code>POST /api/generate-api-key</code></p>
+                <p><strong>Description:</strong> Generates a new API key for the authenticated user.</p>
+                <h4>Headers:</h4>
+                <ul>
+                    <li><code>Authorization: Bearer &lt;your_api_key&gt;</code> <em>(If API keys are managed per user)</em></li>
+                </ul>
+                <h4>Request Body:</h4>
+                <p><em>None</em></p>
+                <h4>Response:</h4>
+                <h5>Success (201 Created):</h5>
+                <pre><code>{
+    "apiKey": "newly_generated_api_key",
+    "createdAt": "2024-05-01T12:00:00.000Z"
+}</code></pre>
+                <h5>Error (400 Bad Request):</h5>
+                <pre><code>{
+    "error": "API Key generation failed"
+}</code></pre>
+            </section>
+
+            <!-- 2. List API Keys -->
+            <section id="2-list-api-keys">
+                <h3>2. List API Keys</h3>
+                <p><strong>Endpoint:</strong> <code>GET /api/generate-api-key</code></p>
+                <p><strong>Description:</strong> Retrieves a list of all API keys associated with the authenticated user.</p>
+                <h4>Headers:</h4>
+                <ul>
+                    <li><code>Authorization: Bearer &lt;your_api_key&gt;</code></li>
+                </ul>
+                <h4>Request Body:</h4>
+                <p><em>None</em></p>
+                <h4>Response:</h4>
+                <h5>Success (200 OK):</h5>
+                <pre><code>{
+    "apiKeys": [
+        {
+            "key": "api_key_1",
+            "createdAt": "2024-04-20T08:30:00.000Z"
+        },
+        {
+            "key": "api_key_2",
+            "createdAt": "2024-04-25T14:45:00.000Z"
+        }
+    ]
+}</code></pre>
+                <h5>Error (401 Unauthorized):</h5>
+                <pre><code>{
+    "error": "Unauthorized"
+}</code></pre>
+            </section>
+
+            <!-- 3. Upload Files -->
+            <section id="3-upload-files">
+                <h3>3. Upload Files</h3>
+                <p><strong>Endpoint:</strong> <code>POST /api/upload</code></p>
+                <p><strong>Description:</strong> Uploads one or multiple files to the server under a specified folder.</p>
+                <h4>Headers:</h4>
+                <ul>
+                    <li><code>Authorization: Bearer &lt;your_api_key&gt;</code></li>
+                    <li><code>Content-Type: multipart/form-data</code></li>
+                    <li><code>x-folder: &lt;folder_name&gt;</code> <em>(Optional; defaults to <code>default</code>)</em></li>
+                </ul>
+                <h4>Request Body:</h4>
+                <ul>
+                    <li><code>files</code>: One or multiple file attachments.</li>
+                </ul>
+                <h4>Response:</h4>
+                <h5>Success (200 OK):</h5>
+                <pre><code>{
+    "message": "Files uploaded and processed successfully",
+    "files": [
+        {
+            "id": "file_id_1",
+            "name": "example1.jpg",
+            "path": "userId/default/fileHash1.jpg",
+            "type": "image/jpeg",
+            "folder": "default",
+            "createdAt": "2024-05-01T12:00:00.000Z",
+            "updatedAt": "2024-05-01T12:00:00.000Z",
+            "userId": "user_id_123"
+        },
+        {
+            "id": "file_id_2",
+            "name": "document.pdf",
+            "path": "userId/default/fileHash2.pdf",
+            "type": "application/pdf",
+            "folder": "default",
+            "createdAt": "2024-05-01T12:00:00.000Z",
+            "updatedAt": "2024-05-01T12:00:00.000Z",
+            "userId": "user_id_123"
+        }
+    ]
+}</code></pre>
+                <h5>Error (400 Bad Request):</h5>
+                <pre><code>{
+    "error": "Invalid file type: application/unsupported"
+}</code></pre>
+            </section>
+
+            <!-- 4. List Files -->
+            <section id="4-list-files">
+                <h3>4. List Files</h3>
+                <p><strong>Endpoint:</strong> <code>GET /api/files</code></p>
+                <p><strong>Description:</strong> Retrieves a paginated list of files belonging to the authenticated user, with optional filtering.</p>
+                <h4>Headers:</h4>
+                <ul>
+                    <li><code>Authorization: Bearer &lt;your_api_key&gt;</code></li>
+                </ul>
+                <h4>Query Parameters:</h4>
+                <ul>
+                    <li><code>page</code> (integer, optional): Page number (defaults to <code>1</code>).</li>
+                    <li><code>limit</code> (integer, optional): Number of files per page (defaults to <code>20</code>).</li>
+                    <li><code>folder</code> (string, optional): Folder name to filter files.</li>
+                    <li><code>search</code> (string, optional): Search term to filter files by name or type.</li>
+                    <li><code>type</code> (string, optional): File MIME type to filter.</li>
+                </ul>
+                <h4>Request Body:</h4>
+                <p><em>None</em></p>
+                <h4>Response:</h4>
+                <h5>Success (200 OK):</h5>
+                <pre><code>{
+    "files": [
+        {
+            "id": "file_id_1",
+            "name": "example1.jpg",
+            "path": "userId/default/fileHash1.jpg",
+            "type": "image/jpeg",
+            "folder": "default",
+            "createdAt": "2024-05-01T12:00:00.000Z",
+            "updatedAt": "2024-05-01T12:00:00.000Z",
+            "userId": "user_id_123"
+        },
+        // More files...
+    ],
+    "pagination": {
+        "total": 50,
+        "pages": 3,
+        "currentPage": 1,
+        "perPage": 20
+    }
+}</code></pre>
+                <h5>Error (401 Unauthorized):</h5>
+                <pre><code>{
+    "error": "Unauthorized"
+}</code></pre>
+            </section>
+
+            <!-- 5. Delete File -->
+            <section id="5-delete-file">
+                <h3>5. Delete File</h3>
+                <p><strong>Endpoint:</strong> <code>DELETE /api/files/:fileId</code></p>
+                <p><strong>Description:</strong> Deletes a specific file owned by the authenticated user.</p>
+                <h4>Headers:</h4>
+                <ul>
+                    <li><code>Authorization: Bearer &lt;your_api_key&gt;</code></li>
+                </ul>
+                <h4>Path Parameters:</h4>
+                <ul>
+                    <li><code>fileId</code> (string, required): The ID of the file to be deleted.</li>
+                </ul>
+                <h4>Request Body:</h4>
+                <p><em>None</em></p>
+                <h4>Response:</h4>
+                <h5>Success (200 OK):</h5>
+                <pre><code>{
+    "message": "File deleted successfully"
+}</code></pre>
+                <h5>Error (404 Not Found):</h5>
+                <pre><code>{
+    "error": "File not found"
+}</code></pre>
+                <h5>Error (401 Unauthorized):</h5>
+                <pre><code>{
+    "error": "Unauthorized"
+}</code></pre>
+            </section>
+
+            <!-- 6. Share File -->
+            <section id="6-share-file">
+                <h3>6. Share File</h3>
+                <p><strong>Endpoint:</strong> <code>POST /api/files/:fileId/share</code></p>
+                <p><strong>Description:</strong> Generates a shareable link for a specific file, allowing others to access it without authentication.</p>
+                <h4>Headers:</h4>
+                <ul>
+                    <li><code>Authorization: Bearer &lt;your_api_key&gt;</code></li>
+                    <li><code>Content-Type: application/json</code></li>
+                </ul>
+                <h4>Path Parameters:</h4>
+                <ul>
+                    <li><code>fileId</code> (string, required): The ID of the file to be shared.</li>
+                </ul>
+                <h4>Request Body:</h4>
+                <ul>
+                    <li><code>expiresIn</code> (integer, required): Duration in hours after which the share link expires.</li>
+                </ul>
+                <pre><code>{
+    "expiresIn": 24
+}</code></pre>
+                <h4>Response:</h4>
+                <h5>Success (200 OK):</h5>
+                <pre><code>{
+    "shareUrl": "http://103.15.157.253:3003/api/share/c6baf964-e8be-4167-a531-c3fd4552d063",
+    "expiresAt": "2024-05-02T12:00:00.000Z"
+}</code></pre>
+                <h5>Error (404 Not Found):</h5>
+                <pre><code>{
+    "error": "File not found"
+}</code></pre>
+                <h5>Error (400 Bad Request):</h5>
+                <pre><code>{
+    "error": "Invalid expiresIn value"
+}</code></pre>
+                <h5>Error (401 Unauthorized):</h5>
+                <pre><code>{
+    "error": "Unauthorized"
+}</code></pre>
+            </section>
+
+            <!-- 7. Access Shared File -->
+            <section id="7-access-shared-file">
+                <h3>7. Access Shared File</h3>
+                <p><strong>Endpoint:</strong> <code>GET /api/share/:shareToken</code></p>
+                <p><strong>Description:</strong> Accesses a shared file using the provided share token.</p>
+                <h4>Headers:</h4>
+                <p><em>None</em></p>
+                <h4>Path Parameters:</h4>
+                <ul>
+                    <li><code>shareToken</code> (string, required): The unique token associated with the shared file.</li>
+                </ul>
+                <h4>Request Body:</h4>
+                <p><em>None</em></p>
+                <h4>Response:</h4>
+                <h5>Success (200 OK):</h5>
+                <p>Streams or displays the file based on its MIME type.</p>
+                <ul>
+                    <li><strong>For Images (<code>image/*</code>):</strong> Displays the image inline.</li>
+                    <li><strong>For PDFs (<code>application/pdf</code>):</strong> Displays the PDF in an iframe.</li>
+                    <li><strong>For Text Files (<code>text/*</code>):</strong> Displays the text in an iframe.</li>
+                    <li><strong>For Other Types:</strong> Provides a download link.</li>
+                </ul>
+                <h5>Error (404 Not Found):</h5>
+                <pre><code>{
+    "error": "Share link not found"
+}</code></pre>
+                <h5>Error (410 Gone):</h5>
+                <pre><code>{
+    "error": "Share link has expired"
+}</code></pre>
+                <h5>Error (500 Internal Server Error):</h5>
+                <pre><code>{
+    "error": "Server error while accessing shared file"
+}</code></pre>
+            </section>
+
+            <!-- 8. View File -->
+            <section id="8-view-file">
+                <h3>8. View File</h3>
+                <p><strong>Endpoint:</strong> <code>GET /api/files/:fileId/view</code></p>
+                <p><strong>Description:</strong> Streams a specific file to the authenticated user for viewing within the application.</p>
+                <h4>Headers:</h4>
+                <ul>
+                    <li><code>Authorization: Bearer &lt;your_api_key&gt;</code></li>
+                </ul>
+                <h4>Path Parameters:</h4>
+                <ul>
+                    <li><code>fileId</code> (string, required): The ID of the file to be viewed.</li>
+                </ul>
+                <h4>Request Body:</h4>
+                <p><em>None</em></p>
+                <h4>Response:</h4>
+                <h5>Success (200 OK):</h5>
+                <p>Streams the file based on its MIME type.</p>
+                <ul>
+                    <li><strong>For Images (<code>image/*</code>):</strong> Displays the image inline.</li>
+                    <li><strong>For PDFs (<code>application/pdf</code>):</strong> Displays the PDF in an iframe.</li>
+                    <li><strong>For Text Files (<code>text/*</code>):</strong> Displays the text in an iframe.</li>
+                    <li><strong>For Other Types:</strong> Provides a download link.</li>
+                </ul>
+                <h5>Error (404 Not Found):</h5>
+                <pre><code>{
+    "error": "File not found"
+}</code></pre>
+                <h5>Error (401 Unauthorized):</h5>
+                <pre><code>{
+    "error": "Unauthorized"
+}</code></pre>
+                <h5>Error (500 Internal Server Error):</h5>
+                <pre><code>{
+    "error": "Server error while accessing file"
+}</code></pre>
+            </section>
+
+            <!-- 9. Download File -->
+            <section id="9-download-file">
+                <h3>9. Download File</h3>
+                <p><strong>Endpoint:</strong> <code>GET /api/files/:fileId/download</code></p>
+                <p><strong>Description:</strong> Downloads a specific file owned by the authenticated user.</p>
+                <h4>Headers:</h4>
+                <ul>
+                    <li><code>Authorization: Bearer &lt;your_api_key&gt;</code></li>
+                </ul>
+                <h4>Path Parameters:</h4>
+                <ul>
+                    <li><code>fileId</code> (string, required): The ID of the file to be downloaded.</li>
+                </ul>
+                <h4>Request Body:</h4>
+                <p><em>None</em></p>
+                <h4>Response:</h4>
+                <h5>Success (200 OK):</h5>
+                <p>Streams the file for download with appropriate headers.</p>
+                <h5>Error (404 Not Found):</h5>
+                <pre><code>{
+    "error": "File not found"
+}</code></pre>
+                <h5>Error (401 Unauthorized):</h5>
+                <pre><code>{
+    "error": "Unauthorized"
+}</code></pre>
+                <h5>Error (500 Internal Server Error):</h5>
+                <pre><code>{
+    "error": "Server error while downloading file"
+}</code></pre>
+            </section>
+        </section>
+
+        <!-- Error Handling -->
+        <section id="error-handling">
+            <h2>Error Handling</h2>
+            <p>EmpireSphere API follows standard HTTP status codes to indicate the success or failure of an API request.</p>
+            <ul>
+                <li><strong>200 OK:</strong> The request was successful.</li>
+                <li><strong>201 Created:</strong> A new resource has been created.</li>
+                <li><strong>400 Bad Request:</strong> The request was invalid or cannot be served.</li>
+                <li><strong>401 Unauthorized:</strong> Authentication failed or user does not have permissions.</li>
+                <li><strong>404 Not Found:</strong> The requested resource could not be found.</li>
+                <li><strong>410 Gone:</strong> The resource requested is no longer available and will not be available again.</li>
+                <li><strong>429 Too Many Requests:</strong> The user has sent too many requests in a given amount of time.</li>
+                <li><strong>500 Internal Server Error:</strong> An error occurred on the server.</li>
+            </ul>
+            <p><strong>Error Response Format:</strong></p>
+            <pre><code>{
+    "error": "Error message describing what went wrong"
+}</code></pre>
+        </section>
+
+        <!-- Rate Limiting -->
+        <section id="rate-limiting">
+            <h2>Rate Limiting</h2>
+            <p>To ensure the stability and security of the EmpireSphere API, rate limiting is enforced:</p>
+            <ul>
+                <li><strong>Limit:</strong> 100 requests per 15 minutes per IP address.</li>
+                <li><strong>Response on Limit Exceed:</strong></li>
+            </ul>
+            <p><strong>Status:</strong> <code>429 Too Many Requests</code></p>
+            <pre><code>{
+    "error": "Too many requests from this IP, please try again later."
+}</code></pre>
+        </section>
+
+        <!-- Examples -->
+        <section id="examples">
+            <h2>Examples</h2>
+
+            <!-- Using cURL -->
+            <section id="using-curl">
+                <h3>Using cURL</h3>
+
+                <!-- Upload Files -->
+                <h4>Upload Files</h4>
+                <pre><code>curl -X POST http://103.15.157.253:3003/api/upload \
+  -H "Authorization: Bearer your_api_key_here" \
+  -F "files=@/path/to/your/file1.jpg" \
+  -F "files=@/path/to/your/file2.pdf" \
+  -F "x-folder=documents"</code></pre>
+
+                <!-- List Files -->
+                <h4>List Files</h4>
+                <pre><code>curl -X GET "http://103.15.157.253:3003/api/files?page=1&limit=10&folder=documents" \
+  -H "Authorization: Bearer your_api_key_here"</code></pre>
+
+                <!-- Share a File -->
+                <h4>Share a File</h4>
+                <pre><code>curl -X POST http://103.15.157.253:3003/api/files/your_file_id/share \
+  -H "Authorization: Bearer your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"expiresIn": 24}'</code></pre>
+
+                <!-- Access Shared File -->
+                <h4>Access Shared File</h4>
+                <pre><code>curl -X GET http://103.15.157.253:3003/api/share/c6baf964-e8be-4167-a531-c3fd4552d063</code></pre>
+            </section>
+
+            <!-- Using JavaScript (Axios) -->
+            <section id="using-javascript-axios">
+                <h3>Using JavaScript (Axios)</h3>
+
+                <!-- Upload Files -->
+                <h4>Upload Files</h4>
+                <pre><code>import axios from 'axios';
+
+const uploadFiles = async () => {
+    const formData = new FormData();
+    formData.append('files', fileInput.files[0]); // Assuming fileInput is an <input type="file" />
+    formData.append('files', fileInput.files[1]); // For multiple files
+    formData.append('x-folder', 'documents');
+
+    try {
+        const response = await axios.post('http://103.15.157.253:3003/api/upload', formData, {
+            headers: {
+                'Authorization': 'Bearer your_api_key_here',
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        console.log(response.data);
+    } catch (error) {
+        console.error(error.response.data);
+    }
+};</code></pre>
+
+                <!-- List Files -->
+                <h4>List Files</h4>
+                <pre><code>import axios from 'axios';
+
+const listFiles = async () => {
+    try {
+        const response = await axios.get('http://103.15.157.253:3003/api/files?page=1&limit=10&folder=documents', {
+            headers: {
+                'Authorization': 'Bearer your_api_key_here',
+            },
+        });
+        console.log(response.data);
+    } catch (error) {
+        console.error(error.response.data);
+    }
+};</code></pre>
+
+                <!-- Share a File -->
+                <h4>Share a File</h4>
+                <pre><code>import axios from 'axios';
+
+const shareFile = async (fileId) => {
+    try {
+        const response = await axios.post(`http://103.15.157.253:3003/api/files/${fileId}/share`, {
+            expiresIn: 24,
+        }, {
+            headers: {
+                'Authorization': 'Bearer your_api_key_here',
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log(response.data.shareUrl);
+    } catch (error) {
+        console.error(error.response.data);
+    }
+};</code></pre>
+            </section>
+
+            <!-- Using Python (Requests) -->
+            <section id="using-python-requests">
+                <h3>Using Python (Requests)</h3>
+
+                <!-- Upload Files -->
+                <h4>Upload Files</h4>
+                <pre><code>import requests
+
+url = 'http://103.15.157.253:3003/api/upload'
+headers = {
+    'Authorization': 'Bearer your_api_key_here'
+}
+files = {
+    'files': open('path/to/your/file1.jpg', 'rb'),
+    'files': open('path/to/your/file2.pdf', 'rb')
+}
+data = {
+    'x-folder': 'documents'
+}
+
+response = requests.post(url, headers=headers, files=files, data=data)
+print(response.json())</code></pre>
+
+                <!-- List Files -->
+                <h4>List Files</h4>
+                <pre><code>import requests
+
+url = 'http://103.15.157.253:3003/api/files'
+headers = {
+    'Authorization': 'Bearer your_api_key_here'
+}
+params = {
+    'page': 1,
+    'limit': 10,
+    'folder': 'documents'
+}
+
+response = requests.get(url, headers=headers, params=params)
+print(response.json())</code></pre>
+
+                <!-- Share a File -->
+                <h4>Share a File</h4>
+                <pre><code>import requests
+
+file_id = 'your_file_id_here'
+url = f'http://103.15.157.253:3003/api/files/{file_id}/share'
+headers = {
+    'Authorization': 'Bearer your_api_key_here',
+    'Content-Type': 'application/json'
+}
+data = {
+    'expiresIn': 24
+}
+
+response = requests.post(url, headers=headers, json=data)
+print(response.json()['shareUrl'])</code></pre>
+            </section>
+        </section>
+
+        <!-- Best Practices -->
+        <section id="best-practices">
+            <h2>Best Practices</h2>
+            <ol>
+                <li><strong>Secure Your API Keys:</strong>
+                    <ul>
+                        <li>Treat your API keys like passwords. Do not expose them in client-side code or repositories.</li>
+                        <li>Rotate your API keys periodically.</li>
+                    </ul>
+                </li>
+                <li><strong>Handle Rate Limits Gracefully:</strong>
+                    <ul>
+                        <li>Implement retry logic with exponential backoff in your applications to handle <code>429 Too Many Requests</code> responses.</li>
+                    </ul>
+                </li>
+                <li><strong>Validate Inputs:</strong>
+                    <ul>
+                        <li>Always validate and sanitize inputs on both client and server sides to prevent injection attacks.</li>
+                    </ul>
+                </li>
+                <li><strong>Use HTTPS:</strong>
+                    <ul>
+                        <li>For production environments, ensure that your API is accessible over HTTPS to encrypt data in transit.</li>
+                    </ul>
+                </li>
+                <li><strong>Monitor Usage:</strong>
+                    <ul>
+                        <li>Keep track of API usage to detect any unusual activity or abuse.</li>
+                    </ul>
+                </li>
+                <li><strong>Error Handling:</strong>
+                    <ul>
+                        <li>Implement comprehensive error handling in your applications to manage different error responses effectively.</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+
+        <!-- Support -->
+        <section id="support">
+            <h2>Support</h2>
+            <p>If you encounter any issues or have questions regarding the EmpireSphere API, please reach out to our support team:</p>
+            <ul>
+                <li><strong>Email:</strong> <a href="mailto:support@empiresphere.com">support@empiresphere.com</a></li>
+                <li><strong>Website:</strong> <a href="https://empiresphere.com" target="_blank" rel="noopener noreferrer">https://empiresphere.com</a></li>
+                <li><strong>Documentation Repository:</strong> <a href="https://github.com/your-repo/empiresphere-docs" target="_blank" rel="noopener noreferrer">GitHub - EmpireSphere Docs</a></li>
+            </ul>
+        </section>
+
+        <!-- Appendix -->
+        <section id="appendix">
+            <h2>Appendix</h2>
+            <h3>Environment Variables</h3>
+            <p>Ensure that your <code>.env</code> file is correctly configured with the necessary variables:</p>
+            <pre><code>API_BASE_URL=http://103.15.157.253:3003
+DATABASE_URL="mongodb+srv://captainempire786:gg@cluster0.tud2i.mongodb.net/EmpireSphere"
+NEXTAUTH_SECRET=your_long_random_string
+PORT=3002</code></pre>
+            <p><strong>Notes:</strong></p>
+            <ul>
+                <li><code>API_BASE_URL</code>: Base URL for your API endpoints. Do <strong>not</strong> include <code>/api</code> as it is handled within the backend routing.</li>
+                <li><code>DATABASE_URL</code>: Connection string for your MongoDB database.</li>
+                <li><code>NEXTAUTH_SECRET</code>: A strong, randomly generated string used for authentication purposes.</li>
+                <li><code>PORT</code>: The port on which your backend server runs (default is <code>3002</code>).</li>
+            </ul>
+        </section>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2024 EmpireSphere. All rights reserved.</p>
+        </div>
+    </main>
+
+    <!-- JavaScript for Sidebar Toggle -->
+    <script>
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const links = sidebar.querySelectorAll('a');
+
+        hamburger.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+
+        // Close sidebar when a link is clicked (for mobile)
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('active');
+                }
+                // Update active link
+                links.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+
+        // Highlight active link on scroll
+        window.addEventListener('scroll', () => {
+            let current = '';
+            document.querySelectorAll('section').forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            links.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
