@@ -99,7 +99,7 @@ const DocumentationSection: React.FC = () => {
                   <p className="mt-4 font-semibold">Upload a File:</p>
                   <pre className="bg-[#2a2a3a] p-4 rounded-lg overflow-x-auto mt-2">
                     <code>
-{`curl -X POST http://192.168.1.6:3003/api/upload \\
+{`curl -X POST http://103.15.157.253:3003/api/upload \\
   -H "x-api-key: YOUR_API_KEY" \\
   -F "files=@/path/to/your/file.jpg" \\
   -H "x-folder: your-folder-name"`}
@@ -109,7 +109,7 @@ const DocumentationSection: React.FC = () => {
                   <p className="mt-4 font-semibold">List Your Files:</p>
                   <pre className="bg-[#2a2a3a] p-4 rounded-lg overflow-x-auto mt-2">
                     <code>
-{`curl -X GET "http://192.168.1.6:3003/api/files?page=1&limit=10" \\
+{`curl -X GET "http://103.15.157.253:3003/api/files?page=1&limit=10" \\
   -H "x-api-key: YOUR_API_KEY"`}
                     </code>
                   </pre>
@@ -117,7 +117,7 @@ const DocumentationSection: React.FC = () => {
                   <p className="mt-4 font-semibold">Generate a Shareable Link for a File:</p>
                   <pre className="bg-[#2a2a3a] p-4 rounded-lg overflow-x-auto mt-2">
                     <code>
-{`curl -X POST http://192.168.1.6:3003/api/files/YOUR_FILE_ID/share \\
+{`curl -X POST http://103.15.157.253:3003/api/files/YOUR_FILE_ID/share \\
   -H "x-api-key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"expiresIn": 24}'`}

@@ -15,28 +15,59 @@ datasource db {
 
 
 model User {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  username String   @unique
-  password String
-  apiKeys  ApiKey[]
-  files    File[]
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  username  String    @unique
+  password  String
+  email     String?   @unique
+  isActive  Boolean   @default(true)
+  role      String    @default("user")
+  apiKeys   ApiKey[]
+  files     File[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model ApiKey {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  key    String @unique
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
-  createdAt DateTime @default(now())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  key         String    @unique
+  name        String?   // Optional name/description for the API key
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String    @db.ObjectId
+  isActive    Boolean   @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime? // Optional expiration date
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+}
+
+
+model ShareLink {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  token     String    @unique
+  file      File      @relation(fields: [fileId], references: [id])
+  fileId    String    @db.ObjectId
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
+  password  String?   // Optional password protection
+  maxUses   Int?      // Optional maximum number of uses
+  uses      Int       @default(0) // Track number of times used
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model File {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  name     String
-  path     String
-  type     String
-  folder   String?
-  user     User     @relation(fields: [userId], references: [id])
-  userId   String   @db.ObjectId
-  createdAt DateTime @default(now())
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  path        String
+  type        String
+  size        Int        @default(0) // File size in bytes
+  folder      String?
+  isPublic    Boolean    @default(false)
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @db.ObjectId
+  shareLinks  ShareLink[]
+  checksum    String?    // Store file hash for integrity
+  metadata    Json?      // Additional file metadata
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }

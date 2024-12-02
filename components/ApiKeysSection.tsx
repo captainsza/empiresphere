@@ -123,7 +123,7 @@ const ApiKeysSection: React.FC<ApiKeysSectionProps> = ({
                   </p>
                   <pre className="bg-[#2a2a3a] p-4 rounded-lg overflow-x-auto">
                     <code>
-                      {`curl -X POST http://103.15.157.253:3002/api/upload \\
+                      {`curl -X POST http://103.15.157.253:3003/api/upload \\
   -H "x-api-key: YOUR_API_KEY" \\
   -F "files=@/path/to/your/file.jpg" \\
   -F "x-folder=your-folder-name"`}
