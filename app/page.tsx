@@ -482,189 +482,156 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a2a] to-[#0a0a1a] text-white p-8 space-y-8">
-      <Toaster richColors />
-
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a2a] to-[#0a0a1a] text-white p-4 md:p-8 space-y-6 overflow-x-hidden">
+      <Toaster richColors position="top-right" />
+  
+      {/* Futuristic Background Overlay */}
       <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.2 }}
+        transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse' }}
+        className="fixed inset-0 z-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20 pointer-events-none"
+      />
+  
+      {/* Animated Header */}
+      <motion.header
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="flex justify-between items-center"
+        transition={{ duration: 0.8, type: 'spring' }}
+        className="relative z-10 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-4"
       >
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{
-              type: 'spring',
-              stiffness: 260,
-              damping: 20,
-            }}
-            whileHover={{
-              scale: 1.1,
-              rotate: 5,
-            }}
-            className="relative"
+            whileHover={{ scale: 1.05, rotate: 3 }}
+            className="relative group"
           >
             <Image
-              src="/logo-removebg-preview.png" // Ensure this image exists in the public directory
+              src="/logo-removebg-preview.png"
               alt="EmpireSphere Logo"
               width={120}
               height={120}
-              className="rounded-lg"
+              className="rounded-xl shadow-2xl group-hover:shadow-blue-500/50 transition-all duration-300"
             />
-            <motion.div
-              className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-purple-600 rounded-lg opacity-75 blur-sm -z-10"
-              animate={{
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                repeatType: 'reverse',
-              }}
-            />
+            <div className="absolute inset-0 bg-blue-500/20 rounded-xl animate-pulse group-hover:animate-none" />
           </motion.div>
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-            EmpireSphere Dashboard
-          </h1>
+          
+          <div className="text-center md:text-left">
+            <motion.h1 
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-3xl md:text-4xl font-extrabold bg-clip-text text-transparent 
+              bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 
+              tracking-wider animate-text-shimmer"
+            >
+              EmpireSphere Dashboard
+            </motion.h1>
+            <p className="text-sm text-gray-400 mt-2 hidden md:block">
+              Your Centralized File Management Hub
+            </p>
+          </div>
         </div>
-        <div className="flex items-center space-x-4">
+  
+        <motion.div 
+          whileHover={{ scale: 1.05 }}
+          className="flex items-center space-x-3 bg-[#1e1e2e]/60 rounded-full px-4 py-2 backdrop-blur-md"
+        >
           <Shield className="text-blue-400" />
-          <span>{session.user.username}</span>
-        </div>
-      </motion.div>
-
-      {/* API Keys Section */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="bg-[#1e1e2e] rounded-2xl p-6 space-y-4 backdrop-filter backdrop-blur-lg bg-opacity-60"
+          <span className="font-medium text-sm md:text-base">
+            {session.user.username}
+          </span>
+        </motion.div>
+      </motion.header>
+  
+      {/* Grid Layout for Main Sections */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, staggerChildren: 0.2 }}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
       >
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <Shield className="text-blue-400" />
-            <h2 className="text-2xl font-semibold">API Keys</h2>
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            onClick={generateApiKey}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 
-              px-4 py-2 rounded-full hover:from-green-700 hover:to-emerald-700 
-              transition-all flex items-center space-x-2"
-            disabled={isGenerating}
-          >
-            <PlusCircle size={20} />
-            <span>Generate API Key</span>
-          </motion.button>
-        </div>
-
-        {/* Instructions */}
-        <div className="text-gray-300 text-sm">
-          <p>Select an API key to authenticate your requests. You can generate multiple keys for different purposes.</p>
-        </div>
-
-        {/* Display API Keys */}
-        <ApiKeysSection
-          apiKeys={apiKeys}
-          isLoading={isGenerating}
-          generateApiKey={generateApiKey}
-          copyToClipboard={copyToClipboard}
-        />
-      </motion.div>
-
-      {/* File Management Section */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="grid md:grid-cols-3 gap-6"
-      >
-        {/* File Upload Card */}
-        <div className="bg-[#1e1e2e] rounded-2xl p-6 space-y-4 col-span-2 backdrop-filter backdrop-blur-lg bg-opacity-60">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <CloudUpload className="text-blue-400" />
-              <h2 className="text-2xl font-semibold">File Upload</h2>
+        {/* API Keys Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="lg:col-span-2 bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-blue-900/30 hover:border-blue-500/50 transition-all"
+        >
+          <ApiKeysSection
+            apiKeys={apiKeys}
+            isLoading={isGenerating}
+            generateApiKey={generateApiKey}
+            copyToClipboard={copyToClipboard}
+          />
+        </motion.div>
+  
+        {/* Quick Actions & Folders */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-6"
+        >
+          {/* File Upload Card */}
+          <div className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-green-900/30 hover:border-green-500/50 transition-all">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center space-x-3">
+                <CloudUpload className="text-green-400" />
+                <h2 className="text-xl font-semibold">Quick Upload</h2>
+              </div>
             </div>
-
-            {/* Folder Creation */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="New Folder Name"
-                className="bg-[#2a2a3a] px-3 py-2 rounded-lg text-sm placeholder-gray-400"
+            <label className="block">
+              <input 
+                type="file" 
+                multiple 
+                onChange={handleFileUpload} 
+                className="hidden" 
               />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                onClick={createNewFolder}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 
-                  px-4 py-2 rounded-full hover:from-green-700 hover:to-emerald-700 
-                  transition-all flex items-center space-x-2"
-              >
-                <PlusCircle size={20} />
-                <span>Create Folder</span>
-              </motion.button>
-            </div>
-          </div>
-
-          {/* File Input */}
-          <div className="flex items-center space-x-4">
-            <label className="flex-grow">
-              <input type="file" multiple onChange={handleFileUpload} className="hidden" />
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="bg-[#2a2a3a] p-4 rounded-lg border-2 border-dashed border-blue-600/50 
-                  text-center cursor-pointer hover:border-blue-600 transition-all backdrop-filter backdrop-blur-md bg-opacity-70"
+                className="bg-[#2a2a3a]/50 p-4 rounded-lg border-2 border-dashed border-green-600/50 
+                  text-center cursor-pointer hover:border-green-600 transition-all"
               >
                 <div className="flex justify-center items-center space-x-2">
-                  <CloudUpload className="text-blue-400" />
-                  <span>Click to upload files to: {selectedFolder}</span>
+                  <CloudUpload className="text-green-400" />
+                  <span className="text-sm">Upload to: {selectedFolder}</span>
                 </div>
               </motion.div>
             </label>
           </div>
-        </div>
-
-        {/* Folders Card */}
-        <div className="bg-[#1e1e2e] rounded-2xl p-6 space-y-4 backdrop-filter backdrop-blur-lg bg-opacity-60">
-          <div className="flex items-center space-x-3">
-            <Folder className="text-blue-400" />
-            <h2 className="text-2xl font-semibold">Folders</h2>
+  
+          {/* Folders Management */}
+          <div className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-purple-900/30 hover:border-purple-500/50 transition-all">
+            <div className="flex items-center space-x-3 mb-4">
+              <Folder className="text-purple-400" />
+              <h2 className="text-xl font-semibold">Folders</h2>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {['default', ...new Set(files.map((f) => f.folder).filter(Boolean))].map((folder) => (
+                <motion.div
+                  key={folder}
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => {
+                    setSelectedFolder(folder || 'default');
+                    fetchFiles();
+                  }}
+                  className={`px-4 py-2 rounded-lg cursor-pointer transition-all text-sm 
+                    ${selectedFolder === folder
+                      ? 'bg-purple-700/50 text-purple-200'
+                      : 'bg-[#2a2a3a]/50 hover:bg-purple-800/30 text-gray-300'
+                    }`}
+                  title={`Select folder: ${folder}`}
+                >
+                  {folder || 'default'}
+                </motion.div>
+              ))}
+            </div>
           </div>
-          <div className="space-y-2">
-            {['default', ...new Set(files.map((f) => f.folder).filter(Boolean))].map((folder) => (
-              <motion.div
-                key={folder}
-                whileHover={{ scale: 1.02 }}
-                onClick={() => {
-                  setSelectedFolder(folder || 'default');
-                  fetchFiles();
-                }}
-                className={`px-4 py-2 rounded-lg cursor-pointer transition-all 
-                  ${selectedFolder === folder
-                    ? 'bg-blue-700/50'
-                    : 'bg-[#2a2a3a] hover:bg-[#3a3a4a]'
-                  }`}
-                title={`Select folder: ${folder}`}
-              >
-                {folder || 'default'}
-              </motion.div>
-            ))}
-          </div>
-        </div>
+        </motion.div>
       </motion.div>
-
-      {/* Files List */}
-      <motion.div
+  
+      {/* Files List Section */}
+      <motion.section
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-[#1e1e2e] rounded-2xl p-6 space-y-4 backdrop-filter backdrop-blur-lg bg-opacity-60"
+        className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-blue-900/30 hover:border-blue-500/50 transition-all"
       >
         <div className="flex items-center space-x-3">
           <FileIcon className="text-blue-400" />
@@ -757,7 +724,7 @@ const DashboardPage: React.FC = () => {
             )}
           </div>
         )}
-      </motion.div>
+      </motion.section>
 
       {/* Preview Modal */}
       <AnimatePresence>
