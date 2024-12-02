@@ -47,7 +47,6 @@ model ShareLink {
   file      File      @relation(fields: [fileId], references: [id])
   fileId    String    @db.ObjectId
   expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id])
   password  String?   // Optional password protection
   maxUses   Int?      // Optional maximum number of uses
   uses      Int       @default(0) // Track number of times used
