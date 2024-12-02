@@ -1,18 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // /app/api/files/[id]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { getApiKey } from '@/lib/getApiKey';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://103.15.157.253:3003/api';
 
-export async function DELETE(
-  request: NextRequest, 
-  context: { params: { id: string } }
-) {
+// Define an interface for the route parameters
+interface RouteParams {
+  params: {
+    id: string;
+  };
+}
+
+export async function DELETE(request: Request, { params }: RouteParams) {
   try {
-    const apiKey = getApiKey(request.headers);
-    const { id } = context.params;
+    // Ensure headers can be accessed safely
+    const headers = new Headers(request.headers);
+    const apiKey = getApiKey(headers);
+    const { id } = params;
 
     const response = await axios.delete(`${API_BASE_URL}/api/files/${id}`, {
       headers: {
@@ -25,7 +31,7 @@ export async function DELETE(
     console.error('Delete File Error:', error.message);
     return NextResponse.json(
       { error: error.message || 'Failed to delete file' },
-      { status: 500 }
+      { status: error.response?.status || 500 }
     );
   }
 }
