@@ -8,12 +8,11 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://103.15.157.
 
 export async function DELETE(
   request: NextRequest, 
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params; // Destructure here instead of in the signature
-
   try {
     const apiKey = getApiKey(request.headers);
+    const { id } = params;
 
     const response = await axios.delete(`${API_BASE_URL}/api/files/${id}`, {
       headers: {
