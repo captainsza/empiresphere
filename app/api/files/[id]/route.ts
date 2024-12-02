@@ -7,10 +7,14 @@ import { getApiKey } from '@/lib/getApiKey';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://103.15.157.253:3003/api';
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+// Fix: Update parameter types to match Next.js route handler signature
+export async function DELETE(
+  request: Request,
+  context: { params: { id: string } }
+) {
   try {
     const apiKey = getApiKey(request.headers);
-    const { id } = params;
+    const { id } = context.params;
 
     const response = await axios.delete(`${API_BASE_URL}/api/files/${id}`, {
       headers: {
