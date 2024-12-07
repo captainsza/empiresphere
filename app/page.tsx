@@ -18,7 +18,6 @@ import {
   FileText,
   Share2,
   X,
-  PlusCircle,
 } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +29,7 @@ import { useRouter } from 'next/navigation';
 import ApiKeysSection from '@/components/ApiKeysSection';
 import DocumentationSection from '@/components/DocumentationSection';
 import { saveAs } from 'file-saver'; 
+
 // Define the FileItem interface
 interface FileItem {
   createdAt: string | number | Date;
@@ -70,7 +70,6 @@ const FileTypeIcon: React.FC<{ fileType: string }> = ({ fileType }) => {
   }
 };
 
-// DashboardPage Component
 const DashboardPage: React.FC = () => {
   const { data: session, status } = useSession();
   const [apiKeys, setApiKeys] = useState<{ key: string; createdAt: string }[]>([]);
@@ -79,6 +78,7 @@ const DashboardPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [newFolderName, setNewFolderName] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('default');
+
   // State variables for sharing and file preview
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [fileToShare, setFileToShare] = useState<FileItem | null>(null);
@@ -237,6 +237,7 @@ const DashboardPage: React.FC = () => {
       });
     }
   };
+
   const handleDownloadFile = async (file: FileItem) => {
     const previewUrl = generatePreviewUrl(file.id);
     try {
@@ -252,6 +253,7 @@ const DashboardPage: React.FC = () => {
       toast.error('Failed to download file');
     }
   };
+
   // Handle file deletion
   const handleDeleteFile = async (fileId: string) => {
     const apiKey = getCurrentApiKey();
@@ -313,7 +315,7 @@ const DashboardPage: React.FC = () => {
       );
 
       if (response.status === 201) {
-        const { shareUrl: generatedShareUrl, expiresAt } = response.data;
+        const { shareUrl: generatedShareUrl } = response.data;
         setShareLink(generatedShareUrl);
 
         toast.success('Share link generated successfully');
@@ -344,7 +346,7 @@ const DashboardPage: React.FC = () => {
 
   const renderFilePreview = (file: FileItem) => {
     const previewUrl = generatePreviewUrl(file.id);
-  
+
     if (!previewUrl) {
       return (
         <div className="text-center p-8">
@@ -352,13 +354,13 @@ const DashboardPage: React.FC = () => {
         </div>
       );
     }
-  
+
     const handlePreviewError = (message: string) => {
       toast.error('Preview Error', {
         description: message,
       });
     };
-  
+
     // Handle image files
     if (file.type.startsWith('image/')) {
       return (
@@ -377,7 +379,7 @@ const DashboardPage: React.FC = () => {
         </div>
       );
     }
-  
+
     // Handle PDF files
     if (file.type === 'application/pdf') {
       return (
@@ -401,7 +403,7 @@ const DashboardPage: React.FC = () => {
         </div>
       );
     }
-  
+
     // Handle text files
     if (file.type.startsWith('text/')) {
       return (
@@ -434,7 +436,7 @@ const DashboardPage: React.FC = () => {
   const generatePreviewUrl = (fileId: string): string => {
     const apiKey = getCurrentApiKey();
     if (!apiKey) return '';
-  
+
     // Encode the API key to ensure it's URL-safe
     const encodedApiKey = encodeURIComponent(apiKey);
     return `/api/files/${fileId}/view?apiKey=${encodedApiKey}`;
@@ -452,25 +454,23 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  // Fetch API keys and files when dependencies change
   useEffect(() => {
     if (session?.user?.id) {
       fetchApiKeys();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
-  // Fetch files whenever API keys or selected folder changes
   useEffect(() => {
     if (apiKeys.length > 0) {
       fetchFiles();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKeys, selectedFolder]);
 
   if (status === 'loading') {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-[#0a0a1a] text-white">
         <RefreshCw size={48} className="animate-spin text-blue-400" />
       </div>
     );
@@ -482,17 +482,33 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a2a] to-[#0a0a1a] text-white p-4 md:p-8 space-y-6 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a1a] via-[#1a1a2a] to-[#0a0a1a] text-white p-4 md:p-8 space-y-6 overflow-x-hidden relative">
       <Toaster richColors position="top-right" />
-  
-      {/* Futuristic Background Overlay */}
+
+      {/* Subtle Animated Gradient Overlay */}
       <motion.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 0.2 }}
+        animate={{ opacity: 0.15 }}
         transition={{ duration: 2, repeat: Infinity, repeatType: 'reverse' }}
-        className="fixed inset-0 z-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-indigo-900/20 pointer-events-none"
+        className="fixed inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_top_left,_#00f_20%,_#a0f_40%,_#f0f_60%)] mix-blend-overlay"
       />
-  
+
+      {/* Floating Glow Particles */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <motion.div
+          className="absolute w-72 h-72 bg-purple-600/20 rounded-full blur-3xl"
+          initial={{ x: '20%', y: '-20%', opacity: 0 }}
+          animate={{ x: '10%', y: '20%', opacity: 0.5 }}
+          transition={{ duration: 10, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute w-96 h-96 bg-blue-600/20 rounded-full blur-3xl"
+          initial={{ x: '80%', y: '40%', opacity: 0 }}
+          animate={{ x: '60%', y: '60%', opacity: 0.4 }}
+          transition={{ duration: 15, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
+        />
+      </div>
+
       {/* Animated Header */}
       <motion.header
         initial={{ opacity: 0, y: -50 }}
@@ -514,7 +530,7 @@ const DashboardPage: React.FC = () => {
             />
             <div className="absolute inset-0 bg-blue-500/20 rounded-xl animate-pulse group-hover:animate-none" />
           </motion.div>
-          
+
           <div className="text-center md:text-left">
             <motion.h1 
               initial={{ opacity: 0, x: -50 }}
@@ -530,30 +546,30 @@ const DashboardPage: React.FC = () => {
             </p>
           </div>
         </div>
-  
+
         <motion.div 
           whileHover={{ scale: 1.05 }}
-          className="flex items-center space-x-3 bg-[#1e1e2e]/60 rounded-full px-4 py-2 backdrop-blur-md"
+          className="flex items-center space-x-3 bg-[#1e1e2e]/60 rounded-full px-4 py-2 backdrop-blur-md border border-blue-900/30"
         >
           <Shield className="text-blue-400" />
-          <span className="font-medium text-sm md:text-base">
+          <span className="font-medium text-sm md:text-base text-gray-200">
             {session.user.username}
           </span>
         </motion.div>
       </motion.header>
-  
+
       {/* Grid Layout for Main Sections */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, staggerChildren: 0.2 }}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10"
       >
         {/* API Keys Section */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:col-span-2 bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-blue-900/30 hover:border-blue-500/50 transition-all"
+          className="lg:col-span-2 bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-blue-900/30 hover:border-blue-500/50 transition-all shadow-lg"
         >
           <ApiKeysSection
             apiKeys={apiKeys}
@@ -562,19 +578,19 @@ const DashboardPage: React.FC = () => {
             copyToClipboard={copyToClipboard}
           />
         </motion.div>
-  
+
         {/* Quick Actions & Folders */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          className="space-y-6 relative z-10"
         >
           {/* File Upload Card */}
-          <div className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-green-900/30 hover:border-green-500/50 transition-all">
+          <div className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-green-900/30 hover:border-green-500/50 transition-all shadow-lg">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center space-x-3">
                 <CloudUpload className="text-green-400" />
-                <h2 className="text-xl font-semibold">Quick Upload</h2>
+                <h2 className="text-xl font-semibold text-gray-200">Quick Upload</h2>
               </div>
             </div>
             <label className="block">
@@ -587,7 +603,7 @@ const DashboardPage: React.FC = () => {
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 className="bg-[#2a2a3a]/50 p-4 rounded-lg border-2 border-dashed border-green-600/50 
-                  text-center cursor-pointer hover:border-green-600 transition-all"
+                  text-center cursor-pointer hover:border-green-600 transition-all text-gray-300"
               >
                 <div className="flex justify-center items-center space-x-2">
                   <CloudUpload className="text-green-400" />
@@ -596,14 +612,14 @@ const DashboardPage: React.FC = () => {
               </motion.div>
             </label>
           </div>
-  
+
           {/* Folders Management */}
-          <div className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-purple-900/30 hover:border-purple-500/50 transition-all">
+          <div className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-purple-900/30 hover:border-purple-500/50 transition-all shadow-lg">
             <div className="flex items-center space-x-3 mb-4">
               <Folder className="text-purple-400" />
-              <h2 className="text-xl font-semibold">Folders</h2>
+              <h2 className="text-xl font-semibold text-gray-200">Folders</h2>
             </div>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2 max-h-64 overflow-y-auto custom-scrollbar">
               {['default', ...new Set(files.map((f) => f.folder).filter(Boolean))].map((folder) => (
                 <motion.div
                   key={folder}
@@ -613,9 +629,10 @@ const DashboardPage: React.FC = () => {
                     fetchFiles();
                   }}
                   className={`px-4 py-2 rounded-lg cursor-pointer transition-all text-sm 
-                    ${selectedFolder === folder
-                      ? 'bg-purple-700/50 text-purple-200'
-                      : 'bg-[#2a2a3a]/50 hover:bg-purple-800/30 text-gray-300'
+                    ${
+                      selectedFolder === folder
+                      ? 'bg-purple-700/50 text-purple-200 border border-purple-500'
+                      : 'bg-[#2a2a3a]/50 hover:bg-purple-800/30 text-gray-300 border border-transparent'
                     }`}
                   title={`Select folder: ${folder}`}
                 >
@@ -623,19 +640,36 @@ const DashboardPage: React.FC = () => {
                 </motion.div>
               ))}
             </div>
+            <div className="mt-4 flex space-x-2">
+              <input
+                type="text"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                className="flex-1 bg-[#2a2a3a] px-3 py-2 rounded-lg text-sm placeholder-gray-400 text-white"
+                placeholder="New folder name"
+              />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={createNewFolder}
+                className="bg-purple-600 px-3 py-2 rounded-lg text-sm text-white hover:bg-purple-700 transition-all"
+              >
+                Create
+              </motion.button>
+            </div>
           </div>
         </motion.div>
       </motion.div>
-  
+
       {/* Files List Section */}
       <motion.section
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-blue-900/30 hover:border-blue-500/50 transition-all"
+        className="bg-[#1e1e2e]/60 rounded-2xl p-6 backdrop-blur-lg border border-blue-900/30 hover:border-blue-500/50 transition-all shadow-lg relative z-10"
       >
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 mb-4">
           <FileIcon className="text-blue-400" />
-          <h2 className="text-2xl font-semibold">Files in {selectedFolder}</h2>
+          <h2 className="text-2xl font-semibold text-gray-200">Files in {selectedFolder}</h2>
         </div>
 
         {isLoading ? (
@@ -652,7 +686,7 @@ const DashboardPage: React.FC = () => {
             </motion.div>
           </div>
         ) : (
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto custom-scrollbar">
             {files.filter((f) => f.folder === selectedFolder || (!f.folder && selectedFolder === 'default')).length === 0 ? (
               <div className="text-center text-gray-400 py-8">
                 <p>No files in this folder</p>
@@ -673,14 +707,14 @@ const DashboardPage: React.FC = () => {
                         damping: 20,
                       }}
                       className="bg-[#2a2a3a] rounded-lg p-4 flex justify-between items-center space-x-4 
-                        hover:bg-[#3a3a4a] transition-colors backdrop-filter backdrop-blur-md bg-opacity-70"
+                        hover:bg-[#3a3a4a] transition-colors backdrop-filter backdrop-blur-md bg-opacity-70 border border-transparent hover:border-blue-500"
                     >
                       <div className="flex items-center space-x-3 overflow-hidden">
                         {/* File type icon */}
                         <FileTypeIcon fileType={file.type} />
 
                         <div className="overflow-hidden">
-                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-sm font-medium truncate text-gray-200">{file.name}</p>
                           <p className="text-xs text-gray-400 truncate">
                             {new Date(file.createdAt).toLocaleDateString()}
                           </p>
@@ -730,13 +764,13 @@ const DashboardPage: React.FC = () => {
       <AnimatePresence>
         {previewModalOpen && fileToPreview && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-[#1e1e2e] rounded-lg p-6 w-11/12 h-5/6 md:w-4/5 lg:w-3/4 backdrop-filter backdrop-blur-lg bg-opacity-80 overflow-hidden"
+              className="bg-[#1e1e2e] rounded-lg p-6 w-11/12 h-5/6 md:w-4/5 lg:w-3/4 backdrop-filter backdrop-blur-lg bg-opacity-90 overflow-hidden"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
@@ -759,7 +793,7 @@ const DashboardPage: React.FC = () => {
                   <X size={24} />
                 </motion.button>
               </div>
-              <div className="w-full h-[calc(100%-4rem)] overflow-auto">
+              <div className="w-full h-[calc(100%-4rem)] overflow-auto custom-scrollbar">
                 {renderFilePreview(fileToPreview)}
               </div>
             </motion.div>
@@ -771,13 +805,13 @@ const DashboardPage: React.FC = () => {
       <AnimatePresence>
         {shareModalOpen && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-[#1e1e2e] rounded-lg p-6 w-11/12 md:w-2/3 lg:w-1/2 backdrop-filter backdrop-blur-lg bg-opacity-80"
+              className="bg-[#1e1e2e] rounded-lg p-6 w-11/12 md:w-2/3 lg:w-1/2 backdrop-filter backdrop-blur-lg bg-opacity-90"
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
@@ -801,7 +835,7 @@ const DashboardPage: React.FC = () => {
                   value={expiresIn}
                   onChange={(e) => setExpiresIn(parseInt(e.target.value))}
                   min={1}
-                  className="bg-[#2a2a3a] px-3 py-2 rounded-lg text-sm placeholder-gray-400 w-full"
+                  className="bg-[#2a2a3a] px-3 py-2 rounded-lg text-sm placeholder-gray-400 w-full text-white"
                 />
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -809,7 +843,7 @@ const DashboardPage: React.FC = () => {
                   onClick={generateShareLink}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 
                     px-4 py-2 rounded-full hover:from-green-700 hover:to-emerald-700 
-                    transition-all w-full flex items-center justify-center space-x-2"
+                    transition-all w-full flex items-center justify-center space-x-2 text-white"
                 >
                   <Share2 size={20} />
                   <span>Generate Share Link</span>
